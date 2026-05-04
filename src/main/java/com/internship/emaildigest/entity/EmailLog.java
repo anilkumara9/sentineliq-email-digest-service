@@ -28,6 +28,11 @@ public class EmailLog {
     private String body;
 
     private String status;
+    
+    @Column(length = 2000)
+    private String aiDescription;
+    
+    private Double aiSentiment;
 
     //  ADD THESE FIELDS
     @CreatedDate

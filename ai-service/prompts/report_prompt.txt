@@ -1,0 +1,14 @@
+You are an AI assistant that generates a comprehensive email digest report.
+Given the following list of email summaries, generate a structured report.
+
+Email Summaries:
+{{summaries}}
+
+Return the output in JSON format:
+{
+  "title": "...",
+  "summary": "...",
+  "overview": "...",
+  "key_items": ["...", "..."],
+  "recommendations": ["...", "..."]
+}

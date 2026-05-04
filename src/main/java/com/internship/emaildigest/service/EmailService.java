@@ -19,6 +19,7 @@ public class EmailService {
     private final JavaMailSender mailSender;
     private final UserRepository userRepository;
     private final EmailLogRepository emailLogRepository;
+    private final AiServiceClient aiServiceClient;
 
     //  Send single email + log
     public void sendEmail(String to, String subject, String body) {
@@ -27,7 +28,10 @@ public class EmailService {
                 .toEmail(to)
                 .subject(subject)
                 .body(body)
+                .status("PENDING")
                 .build(); 
+
+        log = emailLogRepository.save(log);
 
         try {
             SimpleMailMessage message = new SimpleMailMessage();
@@ -44,6 +48,25 @@ public class EmailService {
         }
 
         emailLogRepository.save(log);
+        
+        // Trigger AI processing asynchronously
+        processEmailWithAi(log.getId(), body);
+    }
+
+    @org.springframework.scheduling.annotation.Async
+    public void processEmailWithAi(Long logId, String body) {
+        EmailLog log = emailLogRepository.findById(logId).orElse(null);
+        if (log == null) return;
+
+        java.util.Map<String, Object> aiResult = aiServiceClient.describeEmail(body);
+        if (aiResult != null) {
+            log.setAiDescription((String) aiResult.get("description"));
+            Object sentiment = aiResult.get("sentiment_score");
+            if (sentiment instanceof Number) {
+                log.setAiSentiment(((Number) sentiment).doubleValue());
+            }
+            emailLogRepository.save(log);
+        }
     }
 
     // Send to all active users
